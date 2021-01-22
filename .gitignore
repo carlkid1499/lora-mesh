@@ -1,1 +1,4 @@
 .DS_Store
+Gateway/.vscode/extensions.json
+SetNodeId/.vscode/extensions.json
+LoRaMesh/.vscode/extensions.json
