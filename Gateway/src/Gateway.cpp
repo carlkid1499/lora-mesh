@@ -1,6 +1,7 @@
 
 #define IOTEXPERIMENTER
 
+#include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <SPI.h>
 #include <Wire.h>
