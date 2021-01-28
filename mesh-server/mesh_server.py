@@ -1,9 +1,10 @@
 #! /bin/python
 ###############################################################################
-# A python script to visualize nodes. Code is adapter from the following links.
+# A python script to visualize nodes. Code is adapted from the following links.
 # https://github.com/rweng18/midsummer_network/blob/master/process.py
 # https://github.com/rweng18/midsummer_network/blob/master/midsummer_graph.ipynb
 # https://towardsdatascience.com/tutorial-network-visualization-basics-with-networkx-and-plotly-and-a-little-nlp-57c9bbb55bb9
+# https://pythonbasics.org/webserver/
 ###############################################################################
 
 import argparse
@@ -12,6 +13,18 @@ import re
 import plotly.offline as py
 import plotly.graph_objects as go
 import networkx as nx
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+class MyServer(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        self.wfile.write(bytes("<html><head><title>https://pythonbasics.org</title></head>", "utf-8"))
+        self.wfile.write(bytes("<p>Request: %s</p>" % self.path, "utf-8"))
+        self.wfile.write(bytes("<body>", "utf-8"))
+        self.wfile.write(bytes("<p>This is an example web server.</p>", "utf-8"))
+        self.wfile.write(bytes("</body></html>", "utf-8"))
 
 # Custom function to create an edge between node x and node y, with a given text and width
 def make_edge(x, y, text, width):
@@ -177,14 +190,34 @@ fig.update_layout(showlegend=False)
 fig.update_xaxes(showticklabels=False)
 fig.update_yaxes(showticklabels=False)
 # Show figure
-fig.show()
+fig.write_image("mesh_network_graph.svg")
 
 # main like in C/C++
-#if __name__ == "__main__":
-#    parser = argparse.ArgumentParser(
-#        description="Mesh Server: server content over IP")
-#    parser.add_argument("-ip", type=str, required=True,
-#                        dest="ipaddress", help="IP address to server content on")
-#    parser.add_argument("-p", type=str, required=True,
-#                        dest="ipaddress", help="Port number to server content on")
-#    args = parser.parse_args()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Mesh Server: server content on specified IP")
+    parser.add_argument("-ip", type=str, required=True,
+                        dest="ipaddress", help="IP address to server content on")
+    parser.add_argument("-p", type=int, required=True,
+                        dest="port", help="Port number to server content on")
+    args = parser.parse_args()
+
+
+    if args.ipaddress and args.port:
+        hostname = args.ipaddress
+        serverport = args.port
+
+    
+    webserver = HTTPServer((hostname, serverport), MyServer)
+    print("Server started http://", hostname, ":", serverport)
+
+    try:
+        webserver.serve_forever()
+    
+    except KeyboardInterrupt:
+        pass
+
+    webserver.server_close()
+    print("Server stopped")
+    
+
