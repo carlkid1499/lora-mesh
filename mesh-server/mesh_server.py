@@ -10,21 +10,18 @@
 import argparse
 import json
 import re
+import os
 import plotly.offline as py
 import plotly.graph_objects as go
 import networkx as nx
-from http.server import BaseHTTPRequestHandler, HTTPServer
+import http.server
 
-class MyServer(BaseHTTPRequestHandler):
+class MyServer(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
-        self.wfile.write(bytes("<html><head><title>https://pythonbasics.org</title></head>", "utf-8"))
-        self.wfile.write(bytes("<p>Request: %s</p>" % self.path, "utf-8"))
-        self.wfile.write(bytes("<body>", "utf-8"))
-        self.wfile.write(bytes("<p>This is an example web server.</p>", "utf-8"))
-        self.wfile.write(bytes("</body></html>", "utf-8"))
+        # If the root dir is requested
+        if self.path == "/":
+            self.path = "mesh_network_graph.html"
+        return http.server.SimpleHTTPRequestHandler.do_GET(self)
 
 # Custom function to create an edge between node x and node y, with a given text and width
 def make_edge(x, y, text, width):
@@ -190,8 +187,9 @@ fig.update_layout(showlegend=False)
 fig.update_xaxes(showticklabels=False)
 fig.update_yaxes(showticklabels=False)
 # Show figure
-fig.write_image("mesh_network_graph.svg")
-
+fig.write_html("web/mesh_network_graph.html")
+fig.write_image("web/mesh_network_graph.svg")
+fig.write_image("web/mesh_network_graph.pdf")
 # main like in C/C++
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -207,9 +205,12 @@ if __name__ == "__main__":
         hostname = args.ipaddress
         serverport = args.port
 
-    
-    webserver = HTTPServer((hostname, serverport), MyServer)
-    print("Server started http://", hostname, ":", serverport)
+    # Change Directory and host from web folder
+    webdir = os.path.join(os.path.dirname(__file__), 'web')
+    os.chdir(webdir)
+
+    webserver = http.server.HTTPServer((hostname, serverport), MyServer)
+    print("Server started http://" + hostname + ":" + str(serverport))
 
     try:
         webserver.serve_forever()
